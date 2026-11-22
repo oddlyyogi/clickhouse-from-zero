@@ -1,4 +1,4 @@
-import csv, json, random, sys, uuid
+import calendar, csv, json, random, sys, uuid
 from datetime import datetime, timedelta
 
 rows = int(sys.argv[1])
@@ -6,17 +6,20 @@ out = sys.argv[2]
 seed = int(sys.argv[3]) if len(sys.argv) > 3 else 42
 rng = random.Random(seed)
 start = datetime(2026, 10, 1)
+if len(sys.argv) > 4:
+    start = datetime.fromisoformat(sys.argv[4])
+days = calendar.monthrange(start.year, start.month)[1]
 
 COUNTRIES = ["US", "GB", "DE", "IN", "FR", "BR", "CA", "JP", "AU", "NL"]
 DEVICES = ["mobile", "desktop", "tablet"]
 BROWSERS = ["Chrome", "Safari", "Firefox", "Edge"]
-PAGES = ["/", "/search", "/category", "/deals"]
+PAGES = ["/", "/search", "/category", "/offers"]
 APP_VERSIONS = ["5.1.0", "5.2.0", "5.2.1"]
 
 def session():
     user = rng.randrange(1, 200_001)
     sid = str(uuid.UUID(int=rng.getrandbits(128)))
-    t = start + timedelta(seconds=rng.randrange(31 * 24 * 3600))
+    t = start + timedelta(seconds=rng.randrange(days * 24 * 3600))
     who = (rng.choice(COUNTRIES), rng.choice(DEVICES), rng.choice(BROWSERS))
     steps = [("page_view", rng.choice(PAGES), 0)] * rng.randint(1, 4)
     product = rng.randrange(1, 2001)

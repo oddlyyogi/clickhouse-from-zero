@@ -12,6 +12,8 @@ run `python3 gen/make_events.py 5000000 data/events.csv` to recreate the events.
 | # | Chapter | Folder |
 |---|---------|--------|
 | 1 | Why Are My Analytics Queries So Slow? Your First ClickHouse Table | [chapters/01-your-first-clickhouse-table](chapters/01-your-first-clickhouse-table) |
+| 2 | Picking the Right Data Types So the Data Stays Small and Fast | [chapters/02-picking-the-right-data-types](chapters/02-picking-the-right-data-types) |
+| 3 | Designing ORDER BY and the Primary Key: Why One Query Scans Everything | [chapters/03-order-by-and-the-primary-key](chapters/03-order-by-and-the-primary-key) |
 
 ## Versions
 

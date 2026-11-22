@@ -11,6 +11,7 @@ COUNTRIES = ["US", "GB", "DE", "IN", "FR", "BR", "CA", "JP", "AU", "NL"]
 DEVICES = ["mobile", "desktop", "tablet"]
 BROWSERS = ["Chrome", "Safari", "Firefox", "Edge"]
 PAGES = ["/", "/search", "/category", "/deals"]
+APP_VERSIONS = ["5.1.0", "5.2.0", "5.2.1"]
 
 def session():
     user = rng.randrange(1, 200_001)
@@ -50,5 +51,11 @@ with open(out, "w", newline="") as f:
         w.writerows(events())
     else:
         for e in events():
+            u = e["user_id"]
+            e["props"] = {"app": {"version": APP_VERSIONS[u % 3],
+                                  "os": "ios" if u % 2 else "android"},
+                          "experiment": "B" if u % 10 < 3 else "A"}
+            if e["event_type"] == "page_view":
+                e["props"]["screen"] = {"w": 390 + u % 3 * 20, "h": 844}
             f.write(json.dumps(e) + "\n")
 print(f"wrote {rows:,} events to {out}")

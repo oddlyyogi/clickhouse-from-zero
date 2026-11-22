@@ -1,0 +1,48 @@
+name: ci
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+jobs:
+  clickstream:
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      clickhouse:
+        image: clickhouse/clickhouse-server:26.8
+        ports:
+          - 8123:8123
+          - 9000:9000
+        env:
+          CLICKHOUSE_SKIP_USER_SETUP: "1"
+        options: >-
+          --health-cmd "wget -qO- http://127.0.0.1:8123/ping || exit 1"
+          --health-interval 2s --health-timeout 2s --health-retries 30
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - name: Server is up
+        run: curl -sf http://localhost:8123/ping
+      - name: Apply migrations
+        run: |
+          for f in sql/*.sql; do
+            echo "== $f"
+            docker exec -i ${{ job.services.clickhouse.id }} clickhouse-client --multiquery < "$f"
+          done
+      - name: Generate and load sample events
+        run: |
+          mkdir -p data
+          python gen/make_events.py 100000 data/events.csv
+          docker exec -i ${{ job.services.clickhouse.id }} clickhouse-client -q "INSERT INTO clickstream.events FORMAT CSVWithNames" < data/events.csv
+      - name: Dashboard queries
+        run: |
+          for f in queries/*.sql; do
+            echo "== $f"
+            docker exec -i ${{ job.services.clickhouse.id }} clickhouse-client --multiquery --format PrettyCompactMonoBlock < "$f"
+          done
+          n=$(curl -s "http://localhost:8123/?query=SELECT%20count()%20FROM%20clickstream.events")
+          echo "rows: $n"; test "$n" -ge 100000

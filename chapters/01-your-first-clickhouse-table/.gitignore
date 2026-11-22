@@ -1,0 +1,4 @@
+data/
+server/*
+!server/config.d/
+__pycache__/

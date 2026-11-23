@@ -1,0 +1,45 @@
+name: clickstream-cluster
+x-keeper: &keeper
+  image: clickhouse/clickhouse-server:26.8
+  entrypoint:
+    - clickhouse-keeper
+    - --config-file=/etc/clickhouse-keeper/keeper.xml
+  volumes:
+    - ./keeper.xml:/etc/clickhouse-keeper/keeper.xml:ro
+x-env: &env
+  CLICKHOUSE_PASSWORD: lab-password
+  CLUSTER_SECRET: lab-cluster-secret
+x-server: &server
+  image: clickhouse/clickhouse-server:26.8
+  volumes:
+    - ./cluster.xml:/etc/clickhouse-server/config.d/cluster.xml:ro
+  depends_on: [keeper-01, keeper-02, keeper-03]
+services:
+  keeper-01:
+    <<: *keeper
+    hostname: keeper-01
+    environment: { KEEPER_ID: 1 }
+  keeper-02:
+    <<: *keeper
+    hostname: keeper-02
+    environment: { KEEPER_ID: 2 }
+  keeper-03:
+    <<: *keeper
+    hostname: keeper-03
+    environment: { KEEPER_ID: 3 }
+  clickhouse-01:
+    <<: *server
+    hostname: clickhouse-01
+    environment: { <<: *env, SHARD: "01" }
+  clickhouse-02:
+    <<: *server
+    hostname: clickhouse-02
+    environment: { <<: *env, SHARD: "02" }
+  clickhouse-03:
+    <<: *server
+    hostname: clickhouse-03
+    environment: { <<: *env, SHARD: "01" }
+  clickhouse-04:
+    <<: *server
+    hostname: clickhouse-04
+    environment: { <<: *env, SHARD: "02" }

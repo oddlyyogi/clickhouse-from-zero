@@ -1,0 +1,14 @@
+services:
+  seaweedfs:
+    image: chrislusf/seaweedfs:4.54
+    command: ["mini", "-dir=/data"]
+    environment:
+      AWS_ACCESS_KEY_ID: local-access-key
+      AWS_SECRET_ACCESS_KEY: local-secret-key
+      S3_BUCKET: clickstream
+    ports:
+      - "127.0.0.1:8333:8333"
+    volumes:
+      - seaweed-data:/data
+volumes:
+  seaweed-data:

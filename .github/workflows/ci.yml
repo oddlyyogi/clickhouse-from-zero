@@ -6,7 +6,7 @@ on:
   pull_request:
 
 jobs:
-  clickstream:
+  test:
     runs-on: ubuntu-latest
     timeout-minutes: 15
     services:
@@ -25,24 +25,35 @@ jobs:
       - uses: actions/setup-python@v7
         with:
           python-version: "3.12"
-      - name: Server is up
-        run: curl -sf http://localhost:8123/ping
-      - name: Apply migrations
+      - run: pip install -r requirements.txt
+      - name: Server config and client
+        env:
+          CH: ${{ job.services.clickhouse.id }}
         run: |
-          for f in sql/*.sql; do
-            echo "== $f"
-            docker exec -i ${{ job.services.clickhouse.id }} clickhouse-client --multiquery < "$f"
-          done
-      - name: Generate and load sample events
+          docker cp server/config.d/storage.xml \
+            "$CH:/etc/clickhouse-server/config.d/"
+          docker restart "$CH"
+          mkdir -p "$HOME/bin"
+          docker cp "$CH:/usr/bin/clickhouse" "$HOME/bin/clickhouse"
+          echo "$HOME/bin" >> "$GITHUB_PATH"
+          until curl -sf http://localhost:8123/ping; do sleep 1; done
+      - name: Migrations
+        run: python ops/migrate.py
+      - name: Sample data
         run: |
           mkdir -p data
           python gen/make_events.py 100000 data/events.csv
-          docker exec -i ${{ job.services.clickhouse.id }} clickhouse-client -q "INSERT INTO clickstream.events FORMAT CSVWithNames" < data/events.csv
+          python gen/make_dimensions.py
+          for t in events products customers; do
+            clickhouse client --query \
+              "INSERT INTO clickstream.$t FORMAT CSVWithNames" \
+              < "data/$t.csv"
+          done
+      - name: Tests
+        run: pytest -q
       - name: Dashboard queries
         run: |
           for f in queries/*.sql; do
             echo "== $f"
-            docker exec -i ${{ job.services.clickhouse.id }} clickhouse-client --multiquery --format PrettyCompactMonoBlock < "$f"
+            clickhouse client --queries-file "$f" > /dev/null
           done
-          n=$(curl -s "http://localhost:8123/?query=SELECT%20count()%20FROM%20clickstream.events")
-          echo "rows: $n"; test "$n" -ge 100000

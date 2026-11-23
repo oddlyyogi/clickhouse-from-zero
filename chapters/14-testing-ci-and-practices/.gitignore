@@ -1,0 +1,5 @@
+data/
+server/*
+!server/config.d/
+__pycache__/
+.venv/

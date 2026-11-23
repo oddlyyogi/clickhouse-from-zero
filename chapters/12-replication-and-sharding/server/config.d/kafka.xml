@@ -1,0 +1,6 @@
+<clickhouse>
+    <dead_letter_queue>
+        <database>system</database>
+        <table>dead_letter_queue</table>
+    </dead_letter_queue>
+</clickhouse>

@@ -1,0 +1,21 @@
+<clickhouse>
+    <storage_configuration>
+        <disks>
+            <cold_disk>
+                <path>disks/cold/</path>
+            </cold_disk>
+        </disks>
+        <policies>
+            <hot_cold>
+                <volumes>
+                    <default>
+                        <disk>default</disk>
+                    </default>
+                    <cold>
+                        <disk>cold_disk</disk>
+                    </cold>
+                </volumes>
+            </hot_cold>
+        </policies>
+    </storage_configuration>
+</clickhouse>

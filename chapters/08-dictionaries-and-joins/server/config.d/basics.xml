@@ -1,0 +1,21 @@
+<clickhouse>
+    <display_name>clickstream-local</display_name>
+    <logger>
+        <level>information</level>
+        <log>log/clickhouse-server.log</log>
+        <errorlog>log/clickhouse-server.err.log</errorlog>
+        <console>0</console>
+    </logger>
+    <query_log>
+        <database>system</database>
+        <table>query_log</table>
+    </query_log>
+    <part_log>
+        <database>system</database>
+        <table>part_log</table>
+    </part_log>
+    <asynchronous_insert_log>
+        <database>system</database>
+        <table>asynchronous_insert_log</table>
+    </asynchronous_insert_log>
+</clickhouse>

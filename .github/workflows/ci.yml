@@ -50,7 +50,7 @@ jobs:
               < "data/$t.csv"
           done
       - name: Tests
-        run: pytest -q
+        run: pytest -q tests
       - name: Dashboard queries
         run: |
           for f in queries/*.sql; do
